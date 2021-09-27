@@ -25,6 +25,9 @@
 #include "../player.h"
 #include "../main/speedrunner.h"
 #include "../main/trees.h"
+#include "../compat.h"
+
+#include <fmt_format_ne.h>
 
 
 // draws GFX to screen when on the world map/world map editor
@@ -461,6 +464,11 @@ void UpdateGraphics2(bool skipRepaint)
         int pX, pY;
         pY = marginTop - 6;
 
+        frmMain.renderTexture(0, 0, 800, 130, GFX.Interface[4], 0, 0);
+        frmMain.renderTexture(0, 534, 800, 66, GFX.Interface[4], 0, 534);
+        frmMain.renderTexture(0, 130, 66, 404, GFX.Interface[4], 0, 130);
+        frmMain.renderTexture(734, 130, 66, 404, GFX.Interface[4], 734, 130);
+
         for(A = 1; A <= numPlayers; A++)
         {
             pX = margin * 1.5 - 64 + 48 * A;
@@ -658,24 +666,21 @@ void UpdateGraphics2(bool skipRepaint)
             }
         }
         A = numPlayers + 1;
-        pX = margin * 1.5 - 64 + 48 * A;
-        // Print lives on the screen
-        frmMain.renderTexture(pX, marginTop - 4 - GFX.Interface[3].h, GFX.Interface[3].w, GFX.Interface[3].h, GFX.Interface[3], 0, 0);
-        frmMain.renderTexture(pX + 40, marginTop - 2 - GFX.Interface[3].h, GFX.Interface[1].w, GFX.Interface[1].h, GFX.Interface[1], 0, 0);
 
-        SuperPrint(std::to_string(int(Lives)), 1, pX + 62, marginTop-18);
+        // Print lives on the screen
+        frmMain.renderTexture(32 + (48 * A), 126 - GFX.Interface[3].h, GFX.Interface[3].w, GFX.Interface[3].h, GFX.Interface[3], 0, 0);
+        frmMain.renderTexture(32 + (48 * A) + 40, 128 - GFX.Interface[3].h, GFX.Interface[1].w, GFX.Interface[1].h, GFX.Interface[1], 0, 0);
+        SuperPrint(std::to_string(int(Lives)), 1, 32 + (48 * A) + 62, 112);
+
         // Print coins on the screen
         if(Player[1].Character == 5)
-        {
-            frmMain.renderTexture(pX + 16, marginTop - 42, GFX.Interface[2].w, GFX.Interface[2].h, GFX.Interface[6], 0, 0);
-        }
+            frmMain.renderTexture(32 + (48 * A) + 16, 88, GFX.Interface[2].w, GFX.Interface[2].h, GFX.Interface[6], 0, 0);
         else
-        {
-            frmMain.renderTexture(pX + 16, marginTop - 42, GFX.Interface[2].w, GFX.Interface[2].h, GFX.Interface[2], 0, 0);
-        }
-        frmMain.renderTexture(pX + 40, marginTop - 40, GFX.Interface[1].w, GFX.Interface[1].h, GFX.Interface[1], 0, 0);
+            frmMain.renderTexture(32 + (48 * A) + 16, 88, GFX.Interface[2].w, GFX.Interface[2].h, GFX.Interface[2], 0, 0);
+        frmMain.renderTexture(32 + (48 * A) + 40, 90, GFX.Interface[1].w, GFX.Interface[1].h, GFX.Interface[1], 0, 0);
 
-        SuperPrint(std::to_string(Coins), 1, pX + 62, marginTop - 40);
+        SuperPrint(std::to_string(Coins), 1, 32 + (48 * A) + 62, 90);
+
         // Print stars on the screen
         if(numStars > 0)
         {
@@ -683,39 +688,41 @@ void UpdateGraphics2(bool skipRepaint)
             frmMain.renderTexture(pX + 40, marginTop - 62, GFX.Interface[1].w, GFX.Interface[1].h, GFX.Interface[1], 0, 0);
             SuperPrint(std::to_string(numStars), 1, pX + 62, marginTop - 62);
         }
+
         // Print the level's name
-        if(WorldPlayer[1].LevelName != "")
+        if(!WorldPlayer[1].LevelName.empty())
         {
-            size_t availChars = (size_t)((sW - margin - (pX + 116))/16) + 1;
-            if(WorldPlayer[1].LevelName.length() > availChars*2)
+            auto &s = WorldPlayer[1].stars;
+            int lnl = SuperTextPixLen(WorldPlayer[1].LevelName, 2);
+            int lnlx = 32 + (48 * A) + 116;
+
+            SuperPrint(WorldPlayer[1].LevelName, 2, lnlx, 109);
+
+            if(s.max > 0 && s.displayPolicy > Compatibility_t::STARS_DONT_SHOW)
             {
-                SuperPrint(WorldPlayer[1].LevelName.substr(0, availChars), 2,
-                    pX + 116, marginTop - 21 - 40);
-                SuperPrint(WorldPlayer[1].LevelName.substr(availChars, availChars), 2,
-                    pX + 116 + 16, marginTop - 21 - 20);
-                SuperPrint(WorldPlayer[1].LevelName.substr(availChars*2), 2,
-                    pX + 116 + 16, marginTop - 21);
+                std::string label;
+
+                if(s.displayPolicy >= Compatibility_t::STARS_SHOW_COLLECTED_AND_AVAILABLE)
+                    label = fmt::format_ne("{0}/{1}", s.cur, s.max);
+                else
+                    label = fmt::format_ne("{0}", s.cur);
+
+                int len = SuperTextPixLen(label, 3);
+                int totalLen = len + GFX.Interface[1].w + GFX.Interface[5].w + 8 + 4;
+                int x = 734;
+                int y = (lnl + lnlx >= x - totalLen ? 90 : 109); // Print stars count above the title if it gets too long
+                frmMain.renderTexture(x - len - (GFX.Interface[1].w + 4), y,
+                                      GFX.Interface[1].w, GFX.Interface[1].h, GFX.Interface[1], 0, 0);
+                frmMain.renderTexture(x - len - (GFX.Interface[1].w + GFX.Interface[5].w + 8), y,
+                                      GFX.Interface[5].w, GFX.Interface[5].h, GFX.Interface[5], 0, 0);
+                SuperPrintRightAlign(label, 3, x, y);
             }
-            else if(WorldPlayer[1].LevelName.length() > availChars)
-            {
-                SuperPrint(WorldPlayer[1].LevelName.substr(0, availChars), 2,
-                    pX + 116, marginTop - 21 - 20);
-                SuperPrint(WorldPlayer[1].LevelName.substr(availChars), 2,
-                    pX + 116 + 16, marginTop - 21);
-            }
-            else
-                SuperPrint(WorldPlayer[1].LevelName, 2, pX + 116, marginTop - 21);
         }
 
-        frmMain.setViewport(0, 0, ScreenW, ScreenH);
-
-        speedRun_renderControls(1, -1, SPEEDRUN_ALIGN_LEFT);
-
-        if(GamePaused == true)
+        if(GamePaused)
         {
-            // TODO: make the width dynamic (currently 380px)
-            frmMain.renderRect(ScreenW/2 - 190, ScreenH/2 - 100, 380, 200, 0, 0, 0);
-            if(Cheater == false)
+            frmMain.renderRect(210, 200, 380, 200, 0.f, 0.f, 0.f);
+            if(!Cheater)
             {
                 SuperPrint("CONTINUE", 3, ScreenW/2 - 190 + 62, ScreenH/2 - 100 + 57);
                 SuperPrint("SAVE & CONTINUE", 3, ScreenW/2 - 190 + 62, ScreenH/2 - 100 + 92);

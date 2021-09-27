@@ -30,17 +30,19 @@ namespace std
 }
 #endif
 
-void SuperPrintRightAlign(const char* SuperChars, int SuperN, int Font, float X, float Y, float r, float g, float b, float a)
+int SuperTextPixLen(const std::string &SuperWords, int Font)
 {
+    int len = 0;
+
     switch(Font)
     {
     default:
     case 1:
     case 4:
-        X -= SuperN * 18;
+        len = SuperWords.length() * 18;
         break;
     case 2:
-        X -= SuperN * 16;
+        len = SuperWords.length() * 16;
         break;
     case 3:
     {
@@ -58,21 +60,27 @@ void SuperPrintRightAlign(const char* SuperChars, int SuperN, int Font, float X,
                 B += 16;
             }
         }
-        X -= B;
+        len = B;
         break;
     }
     }
 
-    SuperPrint(SuperChars, SuperN, Font, X, Y, r, g, b, a);
+    return len;
 }
 
-void SuperPrintScreenCenter(const char* SuperChars, int SuperN, int Font, float Y, float r, float g, float b, float a)
+void SuperPrintRightAlign(const std::string &SuperWords, int Font, float X, float Y, float r, float g, float b, float a)
 {
-    float X = (ScreenW / 2) - ((SuperN * 18) / 2);
-    SuperPrint(SuperChars, SuperN, Font, X, Y, r, g, b, a);
+    X -= SuperTextPixLen(SuperWords, Font);
+    SuperPrint(SuperWords, Font, X, Y, r, g, b, a);
 }
 
-void SuperPrint(const char* SuperChars, int SuperN, int Font, float X, float Y,
+void SuperPrintScreenCenter(const std::string &SuperWords, int Font, float Y, float r, float g, float b, float a)
+{
+    float X = (ScreenW / 2) - (SuperTextPixLen(SuperWords, Font) / 2);
+    SuperPrint(SuperWords, Font, X, Y, r, g, b, a);
+}
+
+void SuperPrint(const std::string &SuperWords, int Font, float X, float Y,
                 float r, float g, float b, float a)
 {
 //    int A = 0;

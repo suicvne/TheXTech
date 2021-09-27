@@ -599,6 +599,9 @@ int GameMain(const CmdLineSetup_t &setup)
             LoadCustomSound();
             SetupPlayers();
 
+            if(!NoMap)
+                FindWldStars();
+
             if((!StartLevel.empty() && NoMap) || !GoToLevel.empty())
             {
                 if(NoMap)
