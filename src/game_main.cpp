@@ -707,6 +707,9 @@ int GameMain(const CmdLineSetup_t &setup)
             qScreen = false;
             LevelRestartRequested = false;
 
+            if(lastWarpEntered != StartWarp)
+                lastWarpEntered = StartWarp; // Re-use it when player re-enters a level after death (when option is toggled on)
+
 // for warp entrances
             if((ReturnWarp > 0 && IsEpisodeIntro/*FileName == StartLevel*/) || (StartWarp > 0))
             {
@@ -788,15 +791,9 @@ int GameMain(const CmdLineSetup_t &setup)
                 }
 
                 if(StartWarp > 0)
-                {
-                    lastWarpEntered = StartWarp; // Re-use it when player re-enters a level after death (when option is toggled on)
                     StartWarp = 0;
-                }
                 else
-                {
-                    lastWarpEntered = 0;
                     ReturnWarp = 0;
-                }
             }
 
             speedRun_resetCurrent();
