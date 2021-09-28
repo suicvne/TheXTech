@@ -81,12 +81,8 @@ static void compatInit(Compatibility_t &c)
     c.fix_pswitch_dragon_coin = true;
     // 1.3.5.2
     c.fix_swooper_start_while_inactive = true;
-<<<<<<< HEAD
-    c.fix_FreezeNPCs_no_reset = true;
-=======
     c.fix_FreezeNPCs_no_reset = false;
     c.world_map_stars_show_policy = Compatibility_t::STARS_UNSPECIFIED;
->>>>>>> 1462f06 (Show collected stars per level at world map (#192))
     // 1.3.6
     c.free_level_res = true;
     c.free_world_res = true;
