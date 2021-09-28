@@ -692,12 +692,7 @@ void UpdateGraphics2(bool skipRepaint)
         // Print the level's name
         if(!WorldPlayer[1].LevelName.empty())
         {
-            auto &s = WorldPlayer[1].stars;
-            int lnl = SuperTextPixLen(WorldPlayer[1].LevelName, 2);
-            int lnlx = 32 + (48 * A) + 116;
-
-            SuperPrint(WorldPlayer[1].LevelName, 2, lnlx, 109);
-
+            WorldPlayer_t::StarsState_t& s = WorldPlayer[1].stars;
             if(s.max > 0 && s.displayPolicy > Compatibility_t::STARS_DONT_SHOW)
             {
                 std::string label;
@@ -709,14 +704,35 @@ void UpdateGraphics2(bool skipRepaint)
 
                 int len = SuperTextPixLen(label, 3);
                 int totalLen = len + GFX.Interface[1].w + GFX.Interface[5].w + 8 + 4;
-                int x = 734;
-                int y = (lnl + lnlx >= x - totalLen ? 90 : 109); // Print stars count above the title if it gets too long
-                frmMain.renderTexture(x - len - (GFX.Interface[1].w + 4), y,
-                                      GFX.Interface[1].w, GFX.Interface[1].h, GFX.Interface[1], 0, 0);
-                frmMain.renderTexture(x - len - (GFX.Interface[1].w + GFX.Interface[5].w + 8), y,
+                int x = vScreenX[Z] + WorldPlayer[1].Location.X + WorldPlayer[1].Location.Width / 2 - totalLen / 2;
+                int y = vScreenY[Z] + WorldPlayer[1].Location.Y - 32;
+
+                frmMain.renderTexture(x, y,
                                       GFX.Interface[5].w, GFX.Interface[5].h, GFX.Interface[5], 0, 0);
-                SuperPrintRightAlign(label, 3, x, y);
+                frmMain.renderTexture(x + GFX.Interface[5].w + 8, y,
+                                      GFX.Interface[1].w, GFX.Interface[1].h, GFX.Interface[1], 0, 0);
+                SuperPrint(label, 3, x + GFX.Interface[1].w + GFX.Interface[5].w + 8 + 4, y);
             }
+
+            size_t availChars = (size_t)((sW - margin - (pX + 116))/16) + 1;
+            if(WorldPlayer[1].LevelName.length() > availChars*2)
+            {
+                SuperPrint(WorldPlayer[1].LevelName.substr(0, availChars), 2,
+                    pX + 116, marginTop - 21 - 40);
+                SuperPrint(WorldPlayer[1].LevelName.substr(availChars, availChars), 2,
+                    pX + 116 + 16, marginTop - 21 - 20);
+                SuperPrint(WorldPlayer[1].LevelName.substr(availChars*2), 2,
+                    pX + 116 + 16, marginTop - 21);
+            }
+            else if(WorldPlayer[1].LevelName.length() > availChars)
+            {
+                SuperPrint(WorldPlayer[1].LevelName.substr(0, availChars), 2,
+                    pX + 116, marginTop - 21 - 20);
+                SuperPrint(WorldPlayer[1].LevelName.substr(availChars), 2,
+                    pX + 116 + 16, marginTop - 21);
+            }
+            else
+                SuperPrint(WorldPlayer[1].LevelName, 2, pX + 116, marginTop - 21);
         }
 
         if(GamePaused)
